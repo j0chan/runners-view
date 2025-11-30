@@ -53,7 +53,7 @@ class ImageAnalyzer:
             ('#FF4500', 'Autumn Maple'),    # 5
             ('#7CFC00', 'Park/Grass'),      # 6
             ('#E0FFFF', 'Snowy Winter'),    # 7
-            ('#1E90FF', 'River/Water'),     # 8
+            ('#1E90FF', 'River/Sea/Water'), # 8
             ('#87CEEB', 'Blue Sky'),        # 9
             ('#FF8C00', 'Sunset'),          # 10
             ('#483D8B', 'Night/Lights')     # 11
