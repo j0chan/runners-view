@@ -13,7 +13,7 @@ class ImageAnalyzer:
         print("Loading AI Model (OpenAI CLIP)...")
         model_id = "openai/clip-vit-large-patch14"
         self.model = CLIPModel.from_pretrained(model_id)
-        self.processor = CLIPProcessor.from_pretrained(model_id)
+        self.processor = CLIPProcessor.from_pretrained(model_id, use_fast=True)
         
         # CLIP AI에게 제공하는 힌트 문장
         self.candidates = [

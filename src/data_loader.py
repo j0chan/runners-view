@@ -44,5 +44,5 @@ class DataLoader:
         if 'heart_rate' in df.columns:
             df['heart_rate'] = df['heart_rate'].ffill().bfill()
         
-        print(f"📊 데이터 로드 완료: {len(df)} points")
+        print(f"데이터 로드 완료: {len(df)} points")
         return df
