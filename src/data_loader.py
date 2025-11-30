@@ -42,7 +42,7 @@ class DataLoader:
         
         # 데이터 정제 (결측치 처리 등)
         if 'heart_rate' in df.columns:
-            df['heart_rate'] = df['heart_rate'].fillna(method='ffill').fillna(method='bfill')
+            df['heart_rate'] = df['heart_rate'].ffill().bfill()
         
         print(f"📊 데이터 로드 완료: {len(df)} points")
         return df

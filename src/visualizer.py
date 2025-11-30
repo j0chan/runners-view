@@ -5,42 +5,58 @@ import pandas as pd
 class Visualizer:
     def __init__(self, df):
         self.df = df
-        # 지도의 중심 좌표 계산
         self.center = [df['lat'].mean(), df['lon'].mean()]
 
-    def create_map(self):
-        """심박수 기반 경로가 포함된 Folium 지도 객체 생성"""
-        
-        # 1. 지도 초기화 (CartoDB Positron: 깔끔한 배경)
+    def create_map(self, photo_df=None):
         m = folium.Map(location=self.center, zoom_start=15, tiles='CartoDB positron')
 
-        # 2. 좌표 리스트 추출
-        # folium.ColorLine은 [[lat, lon], ...] 형태와 [value, ...] 형태가 필요
+        # 1. 경로 그리기 (심박수 데이터)
         points = self.df[['lat', 'lon']].values.tolist()
-        heart_rates = self.df['heart_rate'].tolist()
-
-        # 3. 컬러맵 생성 (Blue -> Red)
-        min_hr = min(heart_rates) if heart_rates else 60
-        max_hr = max(heart_rates) if heart_rates else 180
+        if 'heart_rate' in self.df.columns:
+            heart_rates = self.df['heart_rate'].tolist()
+            vmin = min(heart_rates) if heart_rates else 60
+            vmax = max(heart_rates) if heart_rates else 180
+        else:
+            heart_rates = [140] * len(points)
+            vmin, vmax = 60, 180
         
+        # 색상: Cyan -> Magenta (네온 스타일)
         colormap = cm.LinearColormap(
-            colors=['blue', 'yellow', 'red'], # 파랑 -> 노랑(중간) -> 빨강
-            vmin=min_hr,
-            vmax=max_hr,
+            colors=["#04FF00", "#F7E308", "#FFA500", "#FF0000"],
+            vmin=vmin,
+            vmax=vmax,
             caption='Heart Rate (bpm)'
         )
 
-        # 4. 경로 그리기 (ColorLine)
-        # weight: 선 두께, opacity: 투명도
         folium.ColorLine(
             positions=points,
             colors=heart_rates,
             colormap=colormap,
-            weight=5,
-            opacity=0.8
+            weight=4,
+            opacity=0.7
         ).add_to(m)
-
-        # 범례 추가
         m.add_child(colormap)
-        
+
+        # 2. 사진 마커 추가
+        if photo_df is not None and not photo_df.empty:
+            for _, row in photo_df.iterrows():
+                popup_html = f"""
+                <div style="font-family: sans-serif; color: black; min-width: 150px;">
+                    <b>{row['filename']}</b><br>
+                    Result: <b>{row['scene']}</b>
+                </div>
+                """
+                
+                folium.CircleMarker(
+                    location=[row['lat'], row['lon']],
+                    radius=8,                # 고정 크기
+                    color=row['color'],      # 분류된 색상
+                    weight=2,
+                    fill=True,
+                    fill_color=row['color'],
+                    fill_opacity=1.0,
+                    popup=folium.Popup(popup_html, max_width=250),
+                    tooltip=f"{row['scene']}"
+                ).add_to(m)
+
         return m
