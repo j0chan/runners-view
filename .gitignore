@@ -1,0 +1,17 @@
+# 가상환경 (현재 루트에 풀려있는 파일들 무시)
+bin/
+lib/
+include/
+share/
+pyvenv.cfg
+.Python
+*.pyc
+__pycache__/
+
+# Mac 시스템 파일
+.DS_Store
+
+# 데이터 파일 (로컬 테스트용 데이터는 올리지 않는 것이 원칙)
+data/
+output/
+EOT
