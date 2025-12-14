@@ -1,0 +1,15 @@
+Flask
+gpxpy
+pandas
+folium
+torch
+transformers
+Pillow
+branca
+piexif
+Jinja2
+itsdangerous
+Werkzeug
+click
+MarkupSafe
+gunicorn

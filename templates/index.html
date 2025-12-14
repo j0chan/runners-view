@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Runner's View - GPX & 사진 업로드</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .upload-container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            text-align: left;
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            cursor: pointer;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+        input[type="file"]:hover {
+            border-color: #007bff;
+            background-color: #f0f8ff;
+        }
+        .submit-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+        .submit-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .loader {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 9999;
+        }
+        .spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #007bff;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin-top: -30px;
+            margin-left: -30px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="upload-container">
+        <h1>Runner's View</h1>
+        <p>GPX 파일과 러닝 중 찍은 사진들을 업로드하여<br>당신의 러닝 기억을 시각화해보세요.</p>
+        <form id="upload-form" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="gpx_file">1. GPX 파일</label>
+                <input type="file" id="gpx_file" name="gpx_file" accept=".gpx" required>
+            </div>
+            <div class="form-group">
+                <label for="photo_files">2. 사진 파일</label>
+                <input type="file" id="photo_files" name="photo_files" multiple accept="image/*">
+            </div>
+            <button type="submit" class="submit-btn">시각화 시작</button>
+        </form>
+    </div>
+
+    <div id="loader" class="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', function() {
+            document.getElementById('loader').style.display = 'block';
+        });
+    </script>
+</body>
+</html>

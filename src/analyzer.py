@@ -7,6 +7,10 @@ import torch
 from transformers import CLIPProcessor, CLIPModel
 
 class ImageAnalyzer:
+    """
+    CLIP 모델을 사용하여 이미지의 장면을 분석하고,
+    미리 정의된 색상 및 라벨과 매핑하는 클래스
+    """
     def __init__(self, photo_dir):
         self.photo_dir = photo_dir
         
@@ -15,51 +19,42 @@ class ImageAnalyzer:
         self.model = CLIPModel.from_pretrained(model_id)
         self.processor = CLIPProcessor.from_pretrained(model_id, use_fast=True)
         
-        # CLIP AI에게 제공하는 힌트 문장
+        # CLIP 모델이 이미지를 분류할 때 참고하는 텍스트 후보 목록.
         self.candidates = [
-            # 건축물/빌딩/도심
-            "busy downtown city street with store signs, billboards, commercial buildings, and traffic",
-            # 아스팔트 도로
-            "gray asphalt road surface and street markings",
-            # 트랙
-            "red rubber running track lanes in a stadium",
-            # 흙길
-            "brown dirt path, soil trail, and ground texture",
-            # 숲
-            "dense green forest, woods, and many trees",
-            # 단풍
-            "close-up of red and orange autumn maple leaves on a tree",
-            # 잔디
-            "green grass lawn in a park",
-            # 설경
-            "winter landscape with white snow and snow covering the ground and trees",
-            # 강/바다/물
-            "blue water surface of a river, lake, or ocean",
-            # 맑은 하늘
-            "empty clear blue sky with no objects, no trees, no buildings",
-            # 노을
-            "orange and purple sunset sky over the horizon",
-            # 야경
-            "night city street with neon lights and darkness"
+            "busy downtown city street with store signs, billboards, commercial buildings, and traffic", # 도시
+            "gray asphalt road surface and street markings", # 도로
+            "red rubber running track lanes in a stadium", # 트랙
+            "brown dirt path, soil trail, and ground texture", # 흙길
+            "dense green forest, woods, and many trees", # 숲
+            "close-up of red and orange autumn maple leaves on a tree", # 단풍
+            "green grass lawn in a park", # 잔디
+            "winter landscape with white snow and snow covering the ground and trees", # 설경
+            "blue water surface of a river, lake, or ocean", # 강/바다
+            "empty clear blue sky with no objects, no trees, no buildings", # 하늘
+            "orange and purple sunset sky over the horizon", # 노을
+            "night city street with neon lights and darkness" # 야경
         ]
         
-        # 색상 및 라벨 매핑
+        # 분석된 장면에 따라 매핑될 색상(Hex)과 라벨 이름
         self.mapping = [
-            ('#708090', 'City'),            # 0
-            ('#36454F', 'Asphalt Road'),    # 1
-            ('#DC143C', 'Red Track'),       # 2
-            ('#8B4513', 'Dirt Trail'),      # 3
-            ('#006400', 'Green Forest'),    # 4
-            ('#FF4500', 'Autumn Maple'),    # 5
-            ('#7CFC00', 'Park/Grass'),      # 6
-            ('#E0FFFF', 'Snowy Winter'),    # 7
-            ('#1E90FF', 'River/Sea/Water'), # 8
-            ('#87CEEB', 'Blue Sky'),        # 9
-            ('#FF8C00', 'Sunset'),          # 10
-            ('#483D8B', 'Night/Lights')     # 11
+            ('#708090', 'City'),
+            ('#36454F', 'Asphalt Road'),
+            ('#FF0000', 'Red Track'),
+            ('#A0522D', 'Dirt Trail'),
+            ('#00A000', 'Green Forest'),
+            ('#FF5733', 'Autumn Maple'),
+            ('#7CFC00', 'Park/Grass'),
+            ('#F0F8FF', 'Snowy Winter'),
+            ('#0077FF', 'River/Sea/Water'),
+            ('#00BFFF', 'Blue Sky'),
+            ('#FF6347', 'Sunset'),
+            ('#8A2BE2', 'Night/Lights')
         ]
 
     def predict_scene_and_color(self, img):
+        """
+        주어진 이미지 한 장을 CLIP 모델로 분석하여 가장 유사한 장면의 색상과 라벨을 반환
+        """
         try:
             inputs = self.processor(
                 text=self.candidates, 
@@ -72,7 +67,6 @@ class ImageAnalyzer:
                 outputs = self.model(**inputs)
             
             probs = outputs.logits_per_image.softmax(dim=1)
-            
             best_idx = probs.argmax().item()
             confidence = probs[0][best_idx].item()
             
@@ -85,14 +79,24 @@ class ImageAnalyzer:
             return '#808080', "Unknown"
 
     def analyze_photos(self, gpx_df):
+        """
+        사진 폴더 내의 모든 이미지를 분석하고, 각 사진을 GPX 경로의 특정 지점에 매핑.
+        """
+        if not self.photo_dir or not os.path.exists(self.photo_dir):
+            return pd.DataFrame()
+
         photo_files = glob.glob(os.path.join(self.photo_dir, "*"))
         valid_exts = ['.jpg', '.jpeg', '.png', '.heic']
         photo_files = [f for f in photo_files if os.path.splitext(f)[1].lower() in valid_exts]
         
-        print(f"{len(photo_files)}장의 사진 분석 중 (Final Tuned Prompts)...")
+        if not photo_files:
+            return pd.DataFrame()
+
+        print(f"Analyzing {len(photo_files)} photos...")
         
         results = []
         
+        # GPX 경로상에서 사진을 배치할 지점을 랜덤으로 선택.
         if len(gpx_df) < len(photo_files):
             indices = random.choices(range(len(gpx_df)), k=len(photo_files))
         else:
@@ -106,18 +110,18 @@ class ImageAnalyzer:
                     target_idx = indices[i]
                     target_point = gpx_df.iloc[target_idx]
 
-                    print(f"매핑: {os.path.basename(fpath)} → {scene_desc}")
+                    print(f"Mapping: {os.path.basename(fpath)} -> {scene_desc}")
 
                     results.append({
                         'filename': os.path.basename(fpath),
+                        'filepath': fpath,
                         'lat': target_point['lat'],
                         'lon': target_point['lon'],
                         'color': semantic_color,
                         'scene': scene_desc,
                         'time': target_point['time']
                     })
-                    
             except Exception as e:
-                print(f"Error {fpath}: {e}")
+                print(f"Error processing {fpath}: {e}")
 
         return pd.DataFrame(results)
